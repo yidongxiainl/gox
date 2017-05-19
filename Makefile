@@ -20,7 +20,14 @@ include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
 ################################## MODULES ####################################
-ALL_MODULES := yes
+#ALL_MODULES := yes
+CONTACT           := yes
+HEAT_CONDUCTION   := yes
+MISC              := yes
+SOLID_MECHANICS   := yes
+# PHASE_FIELD       := yes
+TENSOR_MECHANICS  := yes
+# XFEM              := yes
 include $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 

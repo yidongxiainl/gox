@@ -1,8 +1,26 @@
 #include "GoxApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
-#include "ModulesApp.h"
+//#include "ModulesApp.h"
 #include "MooseSyntax.h"
+
+//module include
+#include "ContactApp.h"
+#include "HeatConductionApp.h"
+#include "MiscApp.h"
+#include "SolidMechanicsApp.h"
+//#include "PhaseFieldApp.h"
+#include "TensorMechanicsApp.h"
+//#include "XFEMApp.h"
+
+//local input for material properties
+#include "PorousMediaBase.h"
+#include "GasMixtureDiffusion.h"
+#include "GasMixtureTimeDerivative.h"
+#include "ReactionSourceSinkKernel.h"
+
+#include "BulkDensityAux.h"
+
 
 template<>
 InputParameters validParams<GoxApp>()
@@ -20,11 +38,26 @@ GoxApp::GoxApp(InputParameters parameters) :
     MooseApp(parameters)
 {
   Moose::registerObjects(_factory);
-  ModulesApp::registerObjects(_factory);
+//  ModulesApp::registerObjects(_factory);
+  ContactApp::registerObjects(_factory);
+  HeatConductionApp::registerObjects(_factory);
+  MiscApp::registerObjects(_factory);
+  SolidMechanicsApp::registerObjects(_factory);
+//  PhaseFieldApp::registerObjects(_factory);
+//  XFEMApp::registerObjects(_factory);
+  TensorMechanicsApp::registerObjects(_factory);
+
   GoxApp::registerObjects(_factory);
 
   Moose::associateSyntax(_syntax, _action_factory);
-  ModulesApp::associateSyntax(_syntax, _action_factory);
+//  ModulesApp::associateSyntax(_syntax, _action_factory);
+  SolidMechanicsApp::associateSyntax(_syntax, _action_factory);
+  ContactApp::associateSyntax(_syntax, _action_factory);
+  HeatConductionApp::associateSyntax(_syntax, _action_factory);
+  MiscApp::associateSyntax(_syntax, _action_factory);
+  TensorMechanicsApp::associateSyntax(_syntax, _action_factory);
+//  XFEMApp::associateSyntax(_syntax, _action_factory);
+
   GoxApp::associateSyntax(_syntax, _action_factory);
 }
 
@@ -45,6 +78,14 @@ extern "C" void GoxApp__registerObjects(Factory & factory) { GoxApp::registerObj
 void
 GoxApp::registerObjects(Factory & factory)
 {
+  // Register our new material class so we can use it.
+  registerMaterial(PorousMediaBase);
+  registerKernel(GasMixtureDiffusion);
+  registerKernel(GasMixtureTimeDerivative);
+  registerKernel(ReactionSourceSinkKernel);
+
+  registerAux(BulkDensityAux);
+  
 }
 
 // External entry point for dynamic syntax association
