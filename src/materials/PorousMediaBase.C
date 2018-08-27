@@ -38,10 +38,15 @@ InputParameters validParams<PorousMediaBase>()
   
   params.addParam<Real>("initial_porosity",         0.15,  "Initial porosity of medium");
   params.addParam<Real>("initial_bulk_density",       2000.0,  "bulk density of porous media in Kg/m^3");
-  params.addParam<Real>("molecular_weight",      21.01e-3,  "moelcular weight of graphite in kg/mol");
+  params.addParam<Real>("molecular_weight",      12.01e-3,  "moelcular weight of graphite in kg/mol");
+
+
+  
 //  params.addParam<Real>("grain_density",       2160.0,  "grain density of graphite in Kg/m^3");
 
+  MooseEnum graphite_type("IG-110 NBG-18", "IG-110");
 
+  params.addParam<MooseEnum>("graphite_type", graphite_type, "graphite types included: IG-110 or NBG-18");
   params.addParam<Real>("reactive_surface_area",   0.3,     "initial reactive surface area in m^2/m^3");
   params.addParam<Real>("rate_scaling_factor",   1.0,     "scaling factor for reaction rate");
   
@@ -68,6 +73,7 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
    _molecular_weight(getParam<Real>("molecular_weight")),
 //   _grain_density(getParam<Real>("grain_density")),
 
+   _graphite_type(getParam<MooseEnum>("graphite_type")),
    _input_reactive_area(getParam<Real>("reactive_surface_area")),
    _rate_scaling_factor(getParam<Real>("rate_scaling_factor")),
 
@@ -104,13 +110,13 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
    _gas_const(getParam<Real>("gas_const")),
 
    _sys_temp(getParam<Real>("sys_temp")),
-   _sys_pressure(getParam<Real>("sys_pressure")),
-   mat(NULL),
-   rhs(NULL),
-   sol(NULL),
-   values(NULL),
-   rows(NULL),
-   cols(NULL)
+   _sys_pressure(getParam<Real>("sys_pressure"))
+//    mat(NULL),
+//    rhs(NULL),
+//    sol(NULL),
+//    values(NULL),
+//    rows(NULL),
+//    cols(NULL)
 {
   _grain_density = _input_bulk_density / (1.0 - _input_porosity);
   
@@ -119,16 +125,16 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
   _vals.resize(n);
   _grad_vals.resize(n);
  
-#if LIBMESH_HAVE_PETSC
-    MatCreateBAIJ(PETSC_COMM_SELF, _vals.size(), _vals.size(), _vals.size(), PETSC_DETERMINE, PETSC_DETERMINE, _vals.size(),NULL, _vals.size(),NULL,&mat);
-    VecCreate(PETSC_COMM_SELF,&rhs);
-    VecCreate(PETSC_COMM_SELF,&sol);
-    VecSetSizes(rhs,n,PETSC_DETERMINE);
-    VecSetSizes(sol,n,PETSC_DETERMINE);
-    PetscCalloc1(n,&cols);
-    PetscCalloc1(n,&rows);
-    PetscCalloc1(n*n,&values);
-#endif 
+// #if LIBMESH_HAVE_PETSC
+//     MatCreateBAIJ(PETSC_COMM_SELF, _vals.size(), _vals.size(), _vals.size(), PETSC_DETERMINE, PETSC_DETERMINE, _vals.size(),NULL, _vals.size(),NULL,&mat);
+//     VecCreate(PETSC_COMM_SELF,&rhs);
+//     VecCreate(PETSC_COMM_SELF,&sol);
+//     VecSetSizes(rhs,n,PETSC_DETERMINE);
+//     VecSetSizes(sol,n,PETSC_DETERMINE);
+//     PetscCalloc1(n,&cols);
+//     PetscCalloc1(n,&rows);
+//     PetscCalloc1(n*n,&values);
+// #endif 
   
   for (unsigned int i = 0; i < _vals.size(); ++i)
   {
@@ -148,12 +154,12 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
 
 PorousMediaBase::~PorousMediaBase()
 {
- MatDestroy(&mat);
- VecDestroy(&rhs);
- VecDestroy(&sol);
- PetscFree(values);
- PetscFree(cols);
- PetscFree(rows);
+//  MatDestroy(&mat);
+//  VecDestroy(&rhs);
+//  VecDestroy(&sol);
+//  PetscFree(values);
+//  PetscFree(cols);
+//  PetscFree(rows);
 }
 
 void
@@ -267,7 +273,7 @@ PorousMediaBase::computeProperties()
           e12 = std::sqrt(e1 * e2) * std::pow(ep, 2.0);
           dr12 = 0.0;
         }
-        else if (!nonpolar1 && !nonpolar2) //both species are po;ar
+        else if (!nonpolar1 && !nonpolar2) //both species are polar
         {
           s12 = 0.5 * (s1 + s2);
           e12 = std::sqrt(e1 * e2);
@@ -458,25 +464,93 @@ PorousMediaBase::computeProperties()
     Real kconst = kTop * Le/kBot;
 
     // reaction product ratio between CO and CO2: CO/CO2
-    Real Ra = kD3 * (kA1 + kA2) * (kS+kD1)/(kA2*kD2*(kS+kD1)+kD2*(kA1+kA2)*(kS+kD1));
+    Real Ra = kD3 * (kA1 + kA2) * (kS+kD1)/(kA1*kD1*(kS+kD1)+kD2*(kA1+kA2)*(kS+kD1)); 
     
     
     _CO_to_CO2_ratio[qp] = Ra;
 
 //    _console << " effective reaction rate "<< kconst << "   "<< Ra << std::endl;
+//    // compute reactive surface area as a function of porosity changes
 
-    // compute reactive surface area as a function of porosity changes
+
+
+
+//     Real init_porosity(_input_porosity);
+//     Real last_porosity(_porosity[qp]);
+//     Real  k_factor (1.5);
+//     Real  con_tmp = k_factor * (1.0 - (1.0 - last_porosity)/(1.0 - init_porosity));
+//     if (con_tmp > 1.0) con_tmp = 1.0;
+    
+
+    // conversion factor at the end of previous time step
+    Real kalfa = 1.0 - _bulk_density_old[qp] / _input_bulk_density;
+    if (kalfa > 1.0) kalfa = 1.0;
+    if (kalfa < 0.0) kalfa = 0.0;
+
     Real init_area(_input_reactive_area);
     
-    Real init_porosity(_input_porosity);
-    Real last_porosity(_porosity[qp]);
-    Real  con_tmp = 1.0 - (1.0 - last_porosity)/(1.0 - init_porosity);
+    switch (_graphite_type)
+    {
+    case 0:  //IG-110
+      _SA[qp]    = init_area * (   -2115.8 * std::pow(kalfa,6)
+                                + 6464.5 * std::pow(kalfa,5)
+                                - 7465.0 * std::pow(kalfa,4)
+                                + 4094.4 * std::pow(kalfa,3)
+                                - 1137.8 * std::pow(kalfa,2)
+                                +  158.7 * kalfa
+                                +  1.0) ;
+
+      break;
+      
+    case 1:  //NBG-18
+      _SA[qp]    = init_area * (   -630.71 * std::pow(kalfa,6)
+                                + 1816.1 * std::pow(kalfa,5)
+                                - 1836.0 * std::pow(kalfa,4)
+                                + 800.05 * std::pow(kalfa,3)
+                                - 216.09 * std::pow(kalfa,2)
+                                +  64.3 * kalfa
+                                +  2.3) ;
+      break;
+      
+    default: mooseError("Unknown graphite type");
+      break;
+    }
     
-//    _SA[qp]    = _input_reactive_area;
-    _SA[qp]    = init_area * (  27.72 * std::pow(con_tmp,3)
-                              - 77.04 * std::pow(con_tmp,2)
-                              + 48.67 * con_tmp
-                              +  1.0) ;
+
+
+//IG-110 reactive surface area:
+//Old implementation
+//     _SA[qp]    = init_area * (    557.86 * std::pow(kalfa,5)
+//                                 - 1525.5 * std::pow(kalfa,4)
+//                                 + 1514.0 * std::pow(kalfa,3)
+//                                 - 667.18 * std::pow(kalfa,2)
+//                                 + 120.14 * kalfa
+//                                 + 1.0) ;
+// new implementation on Aug 23, 2018
+    
+//     _SA[qp]    = init_area * (   -2115.8 * std::pow(kalfa,6)
+//                                 + 6464.5 * std::pow(kalfa,5)
+//                                 - 7465.0 * std::pow(kalfa,4)
+//                                 + 4094.4 * std::pow(kalfa,3)
+//                                 - 1137.8 * std::pow(kalfa,2)
+//                                 +  158.7 * kalfa
+//                                 +  1.0) ;
+
+//NBG-18 reactive surface area:
+// old implemntation
+//     _SA[qp]    = init_area * (    37.794 * std::pow(kalfa,3)
+//                                 - 85.794 * std::pow(kalfa,2)
+//                                 + 45.924 * kalfa
+//                                 + 2.3) ;
+    // new implemntation on Aug. 23, 2018
+//     _SA[qp]    = init_area * (   -630.71 * std::pow(kalfa,6)
+//                                 + 1816.1 * std::pow(kalfa,5)
+//                                 - 1836.0 * std::pow(kalfa,4)
+//                                 + 800.05 * std::pow(kalfa,3)
+//                                 - 216.09 * std::pow(kalfa,2)
+//                                 +  64.3 * kalfa
+//                                 +  2.3) ;
+    
     
 // kinteic reaction rate
     Real kinetic_rate = _rate_scaling_factor * kconst * _SA[qp] *  std::pow(O2_conc, _power_exponent); //Notice: this rate is always >= 0.0
@@ -502,41 +576,72 @@ PorousMediaBase::computeProperties()
 
     // modifying the diffusion coefficients due to porosity/tortuosity of the porenetwork
     // this could be as complicated as needed in future implemntations
-    _diffusivity_of_O2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_O2[qp];
-    _diffusivity_of_N2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_N2[qp];
-    _diffusivity_of_CO[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_CO[qp];
-    _diffusivity_of_CO2[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_CO2[qp];
-    _diffusivity_of_H2O[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_H2O[qp];
-    _diffusivity_of_H2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_H2[qp];
-    _diffusivity_of_NH3[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_NH3[qp];
-    _diffusivity_of_He[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_He[qp];
-    _diffusivity_of_Ar[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_Ar[qp];
+    // this was the old implemntation a while ago
+    // Real scaling_factor = (0.90585 + 0.05052 * _input_bulk_density/1000) * (kalfa - 1.0) + 1;
 
-#if LIBMESH_HAVE_PETSC
-    for (PetscInt ii=0; ii<_vals.size(); ii++){
-      cols[ii] = ii;
-      rows[ii] = ii;
-      for(PetscInt jj=0; jj<_vals.size(); jj++)
-         if (ii==jj ) values[ii*_vals.size()+jj] = 1- X[ii];
-         else  values[ii*_vals.size()+jj] = -X[ii];
+    Real Z(5.95e-3); //for IG-110; for NBG-18, its 1.13e-3
+
+    switch (_graphite_type)
+    {
+    case 0: //IG-110
+      Z = 5.95e-3;
+      break;
+    case 1: //NBG-18
+      Z = 1.13e-3;
+      break;
+    default: mooseError("Unknown graphite type");
+      break;
     }
-    MatSetValues(mat,_vals.size(),rows, _vals.size(), cols, values, INSERT_VALUES);  
-    MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
-    MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
-    MatILUFactor(mat,NULL,NULL,NULL);
-    PetscScalar *array_rhs;
-    VecGetArray(rhs,&array_rhs);
-    for (PetscInt ii=0; ii<_vals.size(); ii++)
-      array_rhs[ii] = (*_grad_vals[ii])[qp](0);
-    VecRestoreArray(rhs,&array_rhs);
-    MatSolve(mat,rhs,sol); 
-    PetscScalar *array_sol;
-    PetscScalar tmp;
-    VecGetArray(sol,&array_sol);
-    for (PetscInt ii=0; ii<_vals.size(); ii++)
-       tmp = array_sol[ii];
-    VecRestoreArray(sol,&array_sol);  
-#endif   
+    
+     
+    Real scaling_factor =  (1.0 - Z) * kalfa + Z;
+    
+    _diffusivity_of_O2[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_O2[qp];
+    _diffusivity_of_N2[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_N2[qp];
+    _diffusivity_of_CO[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_CO[qp];
+    _diffusivity_of_CO2[qp] = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_CO2[qp];
+    _diffusivity_of_H2O[qp] = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_H2O[qp];
+    _diffusivity_of_H2[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_H2[qp];
+    _diffusivity_of_NH3[qp] = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_NH3[qp];
+    _diffusivity_of_He[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_He[qp];
+    _diffusivity_of_Ar[qp]  = _diffusivity_scaling_factor * scaling_factor * _diffusivity_of_Ar[qp];
+
+//     _diffusivity_of_O2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_O2[qp];
+//     _diffusivity_of_N2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_N2[qp];
+//     _diffusivity_of_CO[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_CO[qp];
+//     _diffusivity_of_CO2[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_CO2[qp];
+//     _diffusivity_of_H2O[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_H2O[qp];
+//     _diffusivity_of_H2[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_H2[qp];
+//     _diffusivity_of_NH3[qp] = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_NH3[qp];
+//     _diffusivity_of_He[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_He[qp];
+//     _diffusivity_of_Ar[qp]  = _diffusivity_scaling_factor * (1.21585 * _porosity[qp] - 0.215854) * _diffusivity_of_Ar[qp];
+
+    
+// #if LIBMESH_HAVE_PETSC
+//     for (PetscInt ii=0; ii<_vals.size(); ii++){
+//       cols[ii] = ii;
+//       rows[ii] = ii;
+//       for(PetscInt jj=0; jj<_vals.size(); jj++)
+//          if (ii==jj ) values[ii*_vals.size()+jj] = 1- X[ii];
+//          else  values[ii*_vals.size()+jj] = -X[ii];
+//     }
+//     MatSetValues(mat,_vals.size(),rows, _vals.size(), cols, values, INSERT_VALUES);  
+//     MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+//     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+//     MatILUFactor(mat,NULL,NULL,NULL);
+//     PetscScalar *array_rhs;
+//     VecGetArray(rhs,&array_rhs);
+//     for (PetscInt ii=0; ii<_vals.size(); ii++)
+//       array_rhs[ii] = (*_grad_vals[ii])[qp](0);
+//     VecRestoreArray(rhs,&array_rhs);
+//     MatSolve(mat,rhs,sol); 
+//     PetscScalar *array_sol;
+//     PetscScalar tmp;
+//     VecGetArray(sol,&array_sol);
+//     for (PetscInt ii=0; ii<_vals.size(); ii++)
+//        tmp = array_sol[ii];
+//     VecRestoreArray(sol,&array_sol);  
+// #endif   
   }
 }
 

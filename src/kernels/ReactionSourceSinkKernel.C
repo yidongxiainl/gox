@@ -14,12 +14,15 @@
 
 #include "ReactionSourceSinkKernel.h"
 #include "Material.h"
+#include "MooseVariable.h"
 
 template<>
 InputParameters validParams<ReactionSourceSinkKernel>()
 {
   InputParameters params = validParams<TimeDerivative>();
-  params.addParam<Real>("molecular_weight", 21.01e-3, "stochiometric coefficients of minerals");
+   //  params.addParam<Real>("molecular_weight", 21.01e-3, "stochiometric coefficients of minerals");
+  //  Hai double checked this, should this be the molecular weight (in kg/mole) of carbo?n
+    params.addParam<Real>("molecular_weight", 12.01e-3, "stochiometric coefficients of minerals");
 
   //Overall reaction network C + (1-1/2x)O2 = xCO + (1-x)CO2
   //, where x is the fractionation between CO and CO2
@@ -58,6 +61,7 @@ ReactionSourceSinkKernel::computeQpResidual()
   Real re = 0.0;
   Real droh_dt = (_bulk_density[_qp] - _bulk_density_old[_qp]) / _dt;
   std::string n(_var.name());
+
   std::transform( n.begin(), n.end(), n.begin(), ::tolower);
   
   Real Ra(_CO_to_CO2_ratio[_qp]);
@@ -74,10 +78,11 @@ ReactionSourceSinkKernel::computeQpResidual()
   else if (n == "co2")
     sto_v = 1.0 - X;
   else
-    mooseError("reaction source/sink kenel only acts on O2, CO, and CO2");
+    mooseError("reaction source/sink kernel only acts on O2, CO, and CO2");
   
-  re = sto_v * droh_dt / (_molecular_weight * _porosity[_qp]) * _test[_i][_qp];
-  
+  // re = sto_v * droh_dt / (_molecular_weight * _porosity[_qp]) * _test[_i][_qp];
+  // Hai's new implemntation on Aug 23, 2018
+  re = sto_v * droh_dt / _molecular_weight * _test[_i][_qp];
   return re;
 }
 

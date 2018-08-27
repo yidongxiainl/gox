@@ -44,6 +44,7 @@ private:
   Real _molecular_weight;
   Real _grain_density;
 
+  MooseEnum _graphite_type;
   Real _input_reactive_area;
   Real _rate_scaling_factor;
   
@@ -106,14 +107,14 @@ private:
    
  
 
-#if LIBMESH_HAVE_PETSC
-  Mat mat;
-  Vec rhs;
-  Vec sol;
-  PetscScalar *values;
-  PetscInt    *rows;
-  PetscInt    *cols;
-#endif
+// #if LIBMESH_HAVE_PETSC
+//   Mat mat;
+//   Vec rhs;
+//   Vec sol;
+//   PetscScalar *values;
+//   PetscInt    *rows;
+//   PetscInt    *cols;
+// #endif
 
 };
 

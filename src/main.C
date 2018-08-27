@@ -17,13 +17,14 @@ int main(int argc, char *argv[])
   GoxApp::registerApps();
 
   // This creates dynamic memory that we're responsible for deleting
-  MooseApp * app = AppFactory::createApp("GoxApp", argc, argv);
+  std::shared_ptr<MooseApp> app = AppFactory::createAppShared("GoxApp", argc, argv);
+  // MooseApp * app = AppFactory::createApp("GoxApp", argc, argv);
 
   // Execute the application
   app->run();
 
   // Free up the memory we created earlier
-  delete app;
+  // delete app;
 
   return 0;
 }
