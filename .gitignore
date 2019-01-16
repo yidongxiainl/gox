@@ -141,3 +141,9 @@ include/base/*Revision.h
 
 # phase_field/tests/solution_rasterizer
 out.xyz
+
+.previous_test_results.*
+build
+lib
+test
+*.png
