@@ -20,7 +20,6 @@ template<>
 InputParameters validParams<ReactionSourceSinkKernel>()
 {
   InputParameters params = validParams<TimeDerivative>();
-   //  params.addParam<Real>("molecular_weight", 21.01e-3, "stochiometric coefficients of minerals");
   //  Hai double checked this, should this be the molecular weight (in kg/mole) of carbo?n
     params.addParam<Real>("molecular_weight", 12.01e-3, "stochiometric coefficients of minerals");
 
@@ -63,14 +62,13 @@ ReactionSourceSinkKernel::computeQpResidual()
   std::string n(_var.name());
 
   std::transform( n.begin(), n.end(), n.begin(), ::tolower);
-  
+
   Real Ra(_CO_to_CO2_ratio[_qp]);
 
   Real sto_v;
 
   Real X = Ra / (1.0 + Ra);
-  
-  
+
   if (n == "o2")
     sto_v = -1.0 * (1.0 - 1.0/2.0 * X);
   else if (n == "co")
@@ -79,7 +77,7 @@ ReactionSourceSinkKernel::computeQpResidual()
     sto_v = 1.0 - X;
   else
     mooseError("reaction source/sink kernel only acts on O2, CO, and CO2");
-  
+
   // re = sto_v * droh_dt / (_molecular_weight * _porosity[_qp]) * _test[_i][_qp];
   // Hai's new implemntation on Aug 23, 2018
   re = sto_v * droh_dt / _molecular_weight * _test[_i][_qp];

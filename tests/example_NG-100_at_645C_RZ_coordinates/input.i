@@ -14,8 +14,8 @@
   #   dim = 2
   #   nx = 100
   #   ny = 200
-  #   xmax = 0.0127 # Length of test chamber
-  #   ymax = 0.0254 # Test chamber radius
+  #   xmax = 0.0127 # Test chamber radius
+  #   ymax = 0.0254 # Length of test chamber
 []
 ################################################################################
 [Variables]
@@ -344,13 +344,13 @@
 
      ### default temperature
 
-#     sys_temp = 837.15 # 564 degree Celsus
-     sys_temp = 918.15 # 645 degree Celsus
-#     sys_temp = 1017.15 # 744 degree Celsus
+#     system_temperature = 837.15 # 564 degree Celsus
+     system_temperature = 918.15 # 645 degree Celsus
+#     system_temperature = 1017.15 # 744 degree Celsus
 
     ### default pressure
 
-    sys_pressure = 101325.0
+    system_pressure = 101325.0
   [../]
 []
 ################################################################################

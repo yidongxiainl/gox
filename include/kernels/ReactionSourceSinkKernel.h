@@ -44,15 +44,11 @@ protected:
   const MaterialProperty<Real> & _bulk_density;
   const MaterialProperty<Real> & _bulk_density_old;
   const MaterialProperty<Real> & _CO_to_CO2_ratio;
-  
+
   Real _molecular_weight;
 
-
-  
   /// Coupled time derivatives of mineral concentrations (stored and computed as Aux variables).
 //  std::vector<const VariableValue *> _droh_dt;
-
-  
 };
 
 #endif // REACTIONSOURCESINKKERNEL
