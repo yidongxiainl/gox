@@ -95,6 +95,16 @@ private:
   std::vector<Real> _dipole_moment;
   std::vector<Real> _polarizability;
 
+  /// Heat capacities
+  MaterialProperty<Real> & _cp;
+  MaterialProperty<Real> & _cp_C;
+  MaterialProperty<Real> & _cp_CO;
+  MaterialProperty<Real> & _cp_CO2;
+  MaterialProperty<Real> & _cp_O2;
+
+  /// Thermal diffusivity
+  MaterialProperty<Real> & _kT;
+
 // #if LIBMESH_HAVE_PETSC
 //   Mat mat;
 //   Vec rhs;

@@ -104,7 +104,15 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
    _gas_const(getParam<Real>("gas_const")),
 
    _system_temperature(getParam<Real>("system_temperature")),
-   _system_pressure(getParam<Real>("system_pressure"))
+   _system_pressure(getParam<Real>("system_pressure")),
+
+   _cp(declareProperty<Real>("heat_capacity")),
+   _cp_C(declareProperty<Real>("heat_capacity_of_C")),
+   _cp_CO(declareProperty<Real>("heat_capacity_of_CO")),
+   _cp_CO2(declareProperty<Real>("heat_capacity_of_CO2")),
+   _cp_O2(declareProperty<Real>("heat_capacity_of_O2")),
+
+   _kT(declareProperty<Real>("thermal_conductivity"))
 
 //    mat(NULL),
 //    rhs(NULL),
@@ -487,12 +495,14 @@ PorousMediaBase::computeProperties()
     _k_eff[qp] = kinetic_rate;
 
     /// Current bulk density
+    //TODO is this correct?
     _bulk_density[qp] = _bulk_density_old[qp] - kinetic_rate * _dt;
 
     /// Fully_reacted case
     if (_bulk_density[qp] < 0.0)
       _bulk_density[qp] = 0.0;
 
+    //TODO what is this for?
     _conversion_factor[qp] = 1.0 - _bulk_density[qp] / _input_bulk_density;
 
     /// As bulk density changes due to reaction, so does porosity
@@ -558,6 +568,51 @@ PorousMediaBase::computeProperties()
 //        tmp = array_sol[ii];
 //     VecRestoreArray(sol,&array_sol);
 // #endif
+
+
+    /// From Table C.1 and C.2
+    /// J.M. Smith et al. Introduction to Chemical Engineering Thermodynamics (2005) 7th edition
+
+    Real Acoef, Bcoef, Dcoef;
+
+    if (T > 2000.0) mooseError("Temperature over max value (2000 K)");
+
+    Acoef =  1.771e+00;
+    Bcoef =  0.771e-03;
+    Dcoef = -0.867e+05;
+    _cp_C[qp]   = Acoef     +       Bcoef * T     + Dcoef / T / T;
+    Real int_C  = Acoef * T + 0.5 * Bcoef * T * T - Dcoef / T - 1.026;
+
+    Acoef =  3.376e+00;
+    Bcoef =  0.557e-03;
+    Dcoef = -0.031e+05;
+    _cp_CO[qp]  = Acoef     +       Bcoef * T     + Dcoef / T / T;
+    Real int_CO = Acoef * T + 0.5 * Bcoef * T * T - Dcoef / T - 3.507;
+
+    Acoef =  5.457e+00;
+    Bcoef =  1.045e-03;
+    Dcoef = -1.157e+05;
+    _cp_CO2[qp] = Acoef     +       Bcoef * T     + Dcoef / T / T;
+    Real int_CO2= Acoef * T + 0.5 * Bcoef * T * T - Dcoef / T - 4.467;
+
+    Acoef =  3.639e+00;
+    Bcoef =  0.506e-03;
+    Dcoef = -0.227e+05;
+    _cp_O2[qp]  = Acoef     +       Bcoef * T     + Dcoef / T / T;
+    Real int_O2 = Acoef * T + 0.5 * Bcoef * T * T - Dcoef / T - 3.535;
+
+    //TODO what value?
+    _cp[qp] = 0.0;
+
+    //TODO
+    Real DeltaHf_CO = 0.0;
+    //TODO
+    Real DeltaHf_CO2 = 0.0;
+    Real R2 = R * R;
+
+    Real DeltaHrxn_CO  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
+    Real DeltaHrxn_CO2 = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
+
   }
 }
 

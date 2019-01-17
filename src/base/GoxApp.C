@@ -15,8 +15,11 @@
 
 //local input for material properties
 #include "PorousMediaBase.h"
+#include "GoxHeatTimeDerivative.h"
 #include "GasMixtureDiffusion.h"
 #include "GasMixtureTimeDerivative.h"
+#include "GoxHeatConduction.h"
+#include "GoxHeatReaction.h"
 #include "ReactionSourceSinkKernel.h"
 
 #include "BulkDensityAux.h"
@@ -80,12 +83,14 @@ GoxApp::registerObjects(Factory & factory)
 {
   // Register our new material class so we can use it.
   registerMaterial(PorousMediaBase);
+  registerKernel(GoxHeatTimeDerivative);
   registerKernel(GasMixtureDiffusion);
   registerKernel(GasMixtureTimeDerivative);
+  registerKernel(GoxHeatConduction);
+  registerKernel(GoxHeatReaction);
   registerKernel(ReactionSourceSinkKernel);
 
   registerAux(BulkDensityAux);
-  
 }
 
 // External entry point for dynamic syntax association
