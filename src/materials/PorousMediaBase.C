@@ -495,7 +495,6 @@ PorousMediaBase::computeProperties()
     _k_eff[qp] = kinetic_rate;
 
     /// Current bulk density
-    //TODO is this correct?
     _bulk_density[qp] = _bulk_density_old[qp] - kinetic_rate * _dt;
 
     /// Fully_reacted case
@@ -601,18 +600,14 @@ PorousMediaBase::computeProperties()
     _cp_O2[qp]  = Acoef     +       Bcoef * T     + Dcoef / T / T;
     Real int_O2 = Acoef * T + 0.5 * Bcoef * T * T - Dcoef / T - 3.535;
 
-    //TODO what value?
-    _cp[qp] = 0.0;
+    _cp[qp] = _cp_C[qp];
 
-    //TODO
-    Real DeltaHf_CO = 0.0;
-    //TODO
-    Real DeltaHf_CO2 = 0.0;
+    Real DeltaHf_CO  = -110525.0;
+    Real DeltaHf_CO2 = -393509.0;
     Real R2 = R * R;
 
     Real DeltaHrxn_CO  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
     Real DeltaHrxn_CO2 = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
-
   }
 }
 
