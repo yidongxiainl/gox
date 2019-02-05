@@ -89,6 +89,8 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
    _bulk_density(declareProperty<Real>("bulk_density")),
    _bulk_density_old(declarePropertyOld<Real>("bulk_density")),
 
+   _drho_dt(declareProperty<Real>("bulk_density_time_derivative")),
+
    _conversion_factor(declareProperty<Real>("conversion_factor")),
 
    _SA(declareProperty<Real>("reactive_surface_area")),
@@ -500,6 +502,9 @@ PorousMediaBase::computeProperties()
     /// Fully_reacted case
     if (_bulk_density[qp] < 0.0)
       _bulk_density[qp] = 0.0;
+
+    /// Bulk density time derivative
+    _drho_dt[qp] = (_bulk_density[qp] - _bulk_density_old[qp]) / _dt;
 
     //TODO what is this for?
     _conversion_factor[qp] = 1.0 - _bulk_density[qp] / _input_bulk_density;

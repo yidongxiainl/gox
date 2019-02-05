@@ -66,6 +66,8 @@ private:
   MaterialProperty<Real> & _bulk_density;
   MaterialProperty<Real> & _bulk_density_old;
 
+  MaterialProperty<Real> & _drho_dt;
+
   MaterialProperty<Real> & _conversion_factor;
 
   MaterialProperty<Real> & _SA; /// reactive surface area

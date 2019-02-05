@@ -40,9 +40,7 @@ protected:
   virtual Real computeQpOffDiagJacobian(unsigned int jvar);
 
   /// Material property of porosity
-  const MaterialProperty<Real> & _porosity;
-  const MaterialProperty<Real> & _bulk_density;
-  const MaterialProperty<Real> & _bulk_density_old;
+  const MaterialProperty<Real> & _drho_dt;
   const MaterialProperty<Real> & _CO_to_CO2_ratio;
 
   Real _molecular_weight;
