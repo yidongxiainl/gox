@@ -29,5 +29,6 @@ protected:
 
 private:
 
+  const MaterialProperty<Real> & _heatSourceRate;
 };
 #endif // GOXHEATREACTION_H

@@ -18,13 +18,16 @@ validParams<GoxHeatReaction>()
   return params;
 }
 
-GoxHeatReaction::GoxHeatReaction(const InputParameters & parameters) : Kernel(parameters) {}
+GoxHeatReaction::GoxHeatReaction(const InputParameters & parameters)
+  :Kernel(parameters),
+   _heatSourceRate(getMaterialProperty<Real>("heat_source_rate"))
+{
+}
 
 Real
 GoxHeatReaction::computeQpResidual()
 {
-  //return _test[_i][_qp] * _u[_qp];
-  return 0.0;
+  return - _heatSourceRate[_qp] * _test[_i][_qp];
 }
 
 Real

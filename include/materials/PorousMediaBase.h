@@ -75,7 +75,8 @@ private:
   MaterialProperty<Real> & _CO_to_CO2_ratio; /// reation product ratio
 
   const bool _has_temp; /// coupled to temperature
-  const VariableValue & _temperature;
+  const VariableValue & _temp;
+  const VariableValue & _temp_old;
 
   const bool _has_pressure; /// coupled to pressure
   const VariableValue & _pressure;
@@ -98,14 +99,20 @@ private:
   std::vector<Real> _polarizability;
 
   /// Heat capacities
-  MaterialProperty<Real> & _cp;
   MaterialProperty<Real> & _cp_C;
+  MaterialProperty<Real> & _cp_C_old;
   MaterialProperty<Real> & _cp_CO;
   MaterialProperty<Real> & _cp_CO2;
   MaterialProperty<Real> & _cp_O2;
 
   /// Thermal diffusivity
   MaterialProperty<Real> & _kT;
+
+  /// Heat time derivative
+  MaterialProperty<Real> & _dRhoCpT_dt;
+
+  /// Heat source rate
+  MaterialProperty<Real> & _heatSourceRate;
 
 // #if LIBMESH_HAVE_PETSC
 //   Mat mat;
