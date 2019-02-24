@@ -51,6 +51,8 @@ InputParameters validParams<PorousMediaBase>()
   params.addParam<Real>("system_temperature", 298.15, "System temperature at simulation, K");
   params.addParam<Real>("system_pressure",101325.0 , "System pressure at simulation, Pascal");
 
+  params.addParam<Real>("thermal_conductivity", 2.0, "Thermal conductivity of porous media, W/(m K)");
+
   return params;
 }
 
@@ -205,7 +207,7 @@ PorousMediaBase::computeProperties()
     if (_has_temp)
     {
       T = _temp[qp];
-      T_old = _temp_old[_qp];
+      T_old = _temp_old[qp];
     }
     else
       T = _system_temperature;
@@ -628,7 +630,7 @@ PorousMediaBase::computeProperties()
       Real DeltaHrxn_CO  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
       Real DeltaHrxn_CO2 = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
 
-      Real X = _CO_to_CO2_ratio[_qp] / (1.0 + _CO_to_CO2_ratio[_qp]);
+      Real X = _CO_to_CO2_ratio[qp] / (1.0 + _CO_to_CO2_ratio[qp]);
 
       Real DeltaHrxn = X * DeltaHrxn_CO + (1.0 - X) * DeltaHrxn_CO2;
 
@@ -636,6 +638,7 @@ PorousMediaBase::computeProperties()
 
       _dRhoCpT_dt[qp] = (_bulk_density[qp] * _cp_C[qp] * T - _bulk_density_old[qp] * _cp_C_old[qp] * T_old) / _dt;
     }
+
   }
 }
 

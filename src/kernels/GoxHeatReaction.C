@@ -27,7 +27,7 @@ GoxHeatReaction::GoxHeatReaction(const InputParameters & parameters)
 Real
 GoxHeatReaction::computeQpResidual()
 {
-  return - _heatSourceRate[_qp] * _test[_i][_qp];
+  return _heatSourceRate[_qp] * _test[_i][_qp];
 }
 
 Real

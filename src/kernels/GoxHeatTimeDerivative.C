@@ -28,8 +28,8 @@ GoxHeatTimeDerivative::computeQpResidual()
 {
   /// This formulation only applies to first-order time derivative
 
-  //return _dRhoCpT_dt[_qp] * _test[_i][_qp];
-  return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpResidual();
+  return _dRhoCpT_dt[_qp] * _test[_i][_qp];
+  //return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpResidual();
 }
 
 Real
