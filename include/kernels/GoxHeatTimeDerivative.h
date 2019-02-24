@@ -31,7 +31,7 @@ protected:
 private:
 
   const MaterialProperty<Real> & _bulk_density;
-  const MaterialProperty<Real> & _cp;
+  const MaterialProperty<Real> & _cp_C;
   const MaterialProperty<Real> & _dRhoCpT_dt;
 };
 

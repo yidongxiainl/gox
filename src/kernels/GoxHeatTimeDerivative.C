@@ -18,7 +18,7 @@ InputParameters validParams<GoxHeatTimeDerivative>()
 GoxHeatTimeDerivative::GoxHeatTimeDerivative(const InputParameters & parameters)
   :TimeDerivative(parameters),
    _bulk_density(getMaterialProperty<Real>("bulk_density")),
-   _cp(getMaterialProperty<Real>("heat_capacity")),
+   _cp_C(getMaterialProperty<Real>("heat_capacity_of_C")),
    _dRhoCpT_dt(getMaterialProperty<Real>("heat_time_derivative"))
 {
 }
@@ -28,7 +28,8 @@ GoxHeatTimeDerivative::computeQpResidual()
 {
   /// This formulation only applies to first-order time derivative
 
-  return _dRhoCpT_dt[_qp] * _test[_i][_qp];
+  //return _dRhoCpT_dt[_qp] * _test[_i][_qp];
+  return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpResidual();
 }
 
 Real
@@ -36,5 +37,5 @@ GoxHeatTimeDerivative::computeQpJacobian()
 {
   /// The temperature-dependent change of (rho*Cp) is neglected
 
-  return _bulk_density[_qp] * _cp[_qp] * TimeDerivative::computeQpJacobian();
+  return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpJacobian();
 }
