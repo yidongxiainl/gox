@@ -108,8 +108,11 @@ private:
   /// Thermal diffusivity
   MaterialProperty<Real> & _kT;
 
-  /// Heat time derivative
+  /// Heat energy - time derivative
   MaterialProperty<Real> & _dRhoCpT_dt;
+
+  /// Heat energy - temperature derivative
+  MaterialProperty<Real> & _dRhoCpT_dT;
 
   /// Heat source rate
   MaterialProperty<Real> & _heatSourceRate;

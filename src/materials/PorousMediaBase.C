@@ -119,6 +119,7 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
 
    _kT(declareProperty<Real>("thermal_conductivity")),
    _dRhoCpT_dt(declareProperty<Real>("heat_time_derivative")),
+   _dRhoCpT_dT(declareProperty<Real>("heat_temp_derivative")),
    _heatSourceRate(declareProperty<Real>("heat_source_rate"))
 
 //    mat(NULL),
@@ -637,6 +638,8 @@ PorousMediaBase::computeProperties()
       _heatSourceRate[qp] = kinetic_rate * DeltaHrxn;
 
       _dRhoCpT_dt[qp] = (_bulk_density[qp] * _cp_C[qp] * T - _bulk_density_old[qp] * _cp_C_old[qp] * T_old) / _dt;
+
+      _dRhoCpT_dT[qp] = (_bulk_density[qp] * _cp_C[qp] * T - _bulk_density_old[qp] * _cp_C_old[qp] * T_old) / (T - T_old);
     }
 
   }
