@@ -120,7 +120,10 @@ PorousMediaBase::PorousMediaBase(const InputParameters & parameters)
    _kT(declareProperty<Real>("thermal_conductivity")),
    _dRhoCpT_dt(declareProperty<Real>("heat_time_derivative")),
    _dRhoCpT_dT(declareProperty<Real>("heat_temp_derivative")),
-   _heatSourceRate(declareProperty<Real>("heat_source_rate"))
+   _heatSourceRate(declareProperty<Real>("heat_source_rate")),
+   _deltaHrxn(declareProperty<Real>("deltaHrxn")),
+   _deltaHrxn_CO(declareProperty<Real>("deltaHrxn_CO")),
+   _deltaHrxn_CO2(declareProperty<Real>("deltaHrxn_CO2"))
 
 //    mat(NULL),
 //    rhs(NULL),
@@ -190,8 +193,8 @@ PorousMediaBase::initStatefulProperties(unsigned n_points)
     {
       Real T = _temp[qp];
       if (T < 298.15) mooseError("Initial temperature below lower limit (298.15 K)");
-      _cp_C[qp]     = 1.771e+00 + 0.771e-03 * T - 0.867e+05 / T / T;
-      _cp_C_old[qp] = 1.771e+00 + 0.771e-03 * T - 0.867e+05 / T / T;
+      _cp_C[qp]     = (1.771e+00 + 0.771e-03 * T - 0.867e+05 / T / T) * _gas_const;
+      _cp_C_old[qp] = (1.771e+00 + 0.771e-03 * T - 0.867e+05 / T / T) * _gas_const;
     }
   }
 }
@@ -628,18 +631,24 @@ PorousMediaBase::computeProperties()
       Real DeltaHf_CO2 = -393509.0;
       Real R2 = R * R;
 
-      Real DeltaHrxn_CO  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
-      Real DeltaHrxn_CO2 = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
+      _deltaHrxn_CO[qp]  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
+      _deltaHrxn_CO2[qp] = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
 
       Real X = _CO_to_CO2_ratio[qp] / (1.0 + _CO_to_CO2_ratio[qp]);
 
-      Real DeltaHrxn = X * DeltaHrxn_CO + (1.0 - X) * DeltaHrxn_CO2;
+      _deltaHrxn[qp] = X * _deltaHrxn_CO[qp] + (1.0 - X) * _deltaHrxn_CO2[qp];
 
-      _heatSourceRate[qp] = kinetic_rate * DeltaHrxn;
+      _heatSourceRate[qp] = kinetic_rate * _deltaHrxn[qp];
 
       _dRhoCpT_dt[qp] = (_bulk_density[qp] * _cp_C[qp] * T - _bulk_density_old[qp] * _cp_C_old[qp] * T_old) / _dt;
 
       _dRhoCpT_dT[qp] = (_bulk_density[qp] * _cp_C[qp] * T - _bulk_density_old[qp] * _cp_C_old[qp] * T_old) / (T - T_old);
+
+      /// Remember to multiply by R to get the real heat capacity
+      _cp_C[qp]   *= R;
+      _cp_CO[qp]  *= R;
+      _cp_CO2[qp] *= R;
+      _cp_O2[qp]  *= R;
     }
 
   }

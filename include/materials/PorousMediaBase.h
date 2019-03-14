@@ -117,6 +117,11 @@ private:
   /// Heat source rate
   MaterialProperty<Real> & _heatSourceRate;
 
+  /// Reaction intermediate variables
+  MaterialProperty<Real> & _deltaHrxn;
+  MaterialProperty<Real> & _deltaHrxn_CO;
+  MaterialProperty<Real> & _deltaHrxn_CO2;
+
 // #if LIBMESH_HAVE_PETSC
 //   Mat mat;
 //   Vec rhs;

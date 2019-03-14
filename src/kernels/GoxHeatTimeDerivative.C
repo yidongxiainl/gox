@@ -28,6 +28,7 @@ Real
 GoxHeatTimeDerivative::computeQpResidual()
 {
   /// The temperature-dependent change of (rho*Cp) is neglected
+//  return 2000.0 * 20.0 * TimeDerivative::computeQpResidual();
   return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpResidual();
 
   /// This formulation only applies to first-order time derivative
@@ -38,6 +39,7 @@ Real
 GoxHeatTimeDerivative::computeQpJacobian()
 {
   /// The temperature-dependent change of (rho*Cp) is neglected
+//  return 2000.0 * 20.0 * TimeDerivative::computeQpJacobian();
   return _bulk_density[_qp] * _cp_C[_qp] * TimeDerivative::computeQpJacobian();
 
   /// This formulation only applies to first-order time derivative
