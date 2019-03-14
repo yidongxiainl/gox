@@ -90,6 +90,51 @@
     order = CONSTANT
     family = Monomial
   [../]
+
+  [./Cp_C]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./Cp_CO]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./Cp_CO2]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./Cp_O2]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./deltaHrxn]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./deltaHrxn_CO]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./deltaHrxn_CO2]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./heatSourceRate]
+    order = CONSTANT
+    family = Monomial
+  [../]
+
+  [./kT]
+    order = CONSTANT
+    family = Monomial
+  [../]
 []
 ################################################################################
 [Kernels]
@@ -269,6 +314,69 @@
     property = CO_to_CO2_ratio
     execute_on = 'initial timestep_end'
   [../]
+
+  [./Cp_C]
+    type = MaterialRealAux
+    variable = Cp_C
+    property = heat_capacity_of_C
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./Cp_CO]
+    type = MaterialRealAux
+    variable = Cp_CO
+    property = heat_capacity_of_CO
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./Cp_CO2]
+    type = MaterialRealAux
+    variable = Cp_CO2
+    property = heat_capacity_of_CO2
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./Cp_O2]
+    type = MaterialRealAux
+    variable = Cp_O2
+    property = heat_capacity_of_O2
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./deltaHrxn]
+    type = MaterialRealAux
+    variable = deltaHrxn
+    property = deltaHrxn
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./deltaHrxn_CO]
+    type = MaterialRealAux
+    variable = deltaHrxn_CO
+    property = deltaHrxn_CO
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./deltaHrxn_CO2]
+    type = MaterialRealAux
+    variable = deltaHrxn_CO2
+    property = deltaHrxn_CO2
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./heatSourceRate]
+    type = MaterialRealAux
+    variable = heatSourceRate
+    property = heat_source_rate
+    execute_on = 'initial timestep_end'
+  [../]
+
+  [./kT]
+    type = MaterialRealAux
+    variable = kT
+    property = thermal_conductivity
+    execute_on = 'initial timestep_end'
+  [../]
 []
 ################################################################################
 [BCs]
@@ -313,7 +421,6 @@
   [../]
 
   [./T]
-    #type = DirichletBC
     type = ConvectiveFluxBC
     boundary = '2 4'
     variable = T
@@ -389,13 +496,14 @@
     temperature_var = 'T'
 
     ### input thermal conductivity
-    thermal_conductivity = 2.0
+    thermal_conductivity = 2000.0
   [../]
 []
 ################################################################################
 [Executioner]
   type = Transient
-  solve_type = 'PJFNK'
+  #solve_type = 'PJFNK'
+  solve_type = 'NEWTON'
 
   petsc_options_iname = '-pc_type -pc_hypre_type -ksp_gmres_restart -snes_ls -pc_hypre_boomeramg_strong_threshold'
   petsc_options_value = 'hypre boomeramg 201 cubic 0.7'
@@ -411,7 +519,7 @@
 
   [./TimeStepper]
     type = SolutionTimeAdaptiveDT
-    dt = 100
+    dt = 1e-3
     percent_change = 0.12
   [../]
 

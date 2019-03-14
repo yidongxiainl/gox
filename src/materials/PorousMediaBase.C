@@ -649,6 +649,11 @@ PorousMediaBase::computeProperties()
       _cp_CO[qp]  *= R;
       _cp_CO2[qp] *= R;
       _cp_O2[qp]  *= R;
+
+     /// Thermal conductivity is a function of conversion factor, e.g.a function for T = 650 deg. C
+     /// (it makes nonlinear solving very challenging to converge)
+//     Real CF = _conversion_factor[qp];
+//     _kT[qp] = 1e3 * (64.276*CF*CF - 141.27*CF + 77.0);
     }
 
   }
