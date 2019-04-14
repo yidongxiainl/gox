@@ -629,10 +629,9 @@ PorousMediaBase::computeProperties()
 
       Real DeltaHf_CO  = -110525.0;
       Real DeltaHf_CO2 = -393509.0;
-      Real R2 = R * R;
 
-      _deltaHrxn_CO[qp]  = (DeltaHf_CO  + R2 * int_CO ) - R2 * (int_C + 0.5 * int_O2);
-      _deltaHrxn_CO2[qp] = (DeltaHf_CO2 + R2 * int_CO2) - R2 * (int_C +       int_O2);
+      _deltaHrxn_CO[qp]  = (DeltaHf_CO  + R * int_CO ) - R * (int_C + 0.5 * int_O2);
+      _deltaHrxn_CO2[qp] = (DeltaHf_CO2 + R * int_CO2) - R * (int_C +       int_O2);
 
       Real X = _CO_to_CO2_ratio[qp] / (1.0 + _CO_to_CO2_ratio[qp]);
 
