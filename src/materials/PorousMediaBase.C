@@ -550,6 +550,11 @@ PorousMediaBase::computeProperties()
       break;
     case 1: /// NBG-18
       Z = 1.13e-3;
+      //Z = 3.503e-3; /// for geometry 1 - thin cylinder
+      //Z = 1.095e-3; /// for geometry 2 - thick cylinder
+      //Z = 7.150e-4; /// for geometry 3 - thin plate
+      //Z = 8.660e-4; /// for geometry 4 - thick plate
+      //Z = 6.050e-4; /// for geometry 5 - sphere
       break;
     default: mooseError("Unknown graphite type");
       break;
